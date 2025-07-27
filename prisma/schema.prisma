@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("POSTGRES_URL")
+}
+
+model User {
+  id                   String                @id @default(uuid())
+  email                String                @unique
+  password             String
+  name                 String
+  sites                Site[]                @relation("OwnerToSites")
+  sentInvitations      Invitation[]          @relation("InviterToInvitations")
+  receivedInvitations  Invitation[]          @relation("InviteeToInvitations")
+  historyChanges       InvitationHistory[]   @relation("UserChangedHistories")
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+}
+
+model Site {
+  id            String        @id @default(uuid())
+  name          String
+  address       String
+  description   String?
+  owner         User          @relation("OwnerToSites", fields: [ownerId], references: [id])
+  ownerId       String
+  invitations   Invitation[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Invitation {
+  id             String             @id @default(uuid())
+  inviter        User               @relation("InviterToInvitations", fields: [inviterId], references: [id])
+  inviterId      String
+  invitee        User               @relation("InviteeToInvitations", fields: [inviteeId], references: [id])
+  inviteeId      String
+  site           Site               @relation(fields: [siteId], references: [id])
+  siteId         String
+  startDate      DateTime
+  endDate        DateTime
+  status         InvitationStatus   @default(PENDING)
+  responseToken  String             @unique @default(uuid())
+  histories      InvitationHistory[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([inviterId])
+  @@index([inviteeId])
+  @@index([siteId])
+  @@unique([inviteeId, siteId, startDate, endDate]) // previene solapamientos exactos
+}
+
+model InvitationHistory {
+  id              String      @id @default(uuid())
+  invitation      Invitation  @relation(fields: [invitationId], references: [id])
+  invitationId    String
+  previousStatus  String
+  newStatus       String
+  changedBy       User        @relation("UserChangedHistories", fields: [changedById], references: [id])
+  changedById     String
+  changedAt       DateTime    @default(now())
+
+  @@index([invitationId])
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELED
+}
