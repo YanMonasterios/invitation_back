@@ -1,28 +1,16 @@
 import { Router } from "express";
-import { TodosController } from "./controller";
+
+import { SiteService } from "../services/site.service";
+import { AuthMiddleware } from "../middlewares/auth.middleware";
+import { SiteController } from "./controller";
+
+const router = Router();
+const siteController = new SiteController(new SiteService());
+
+// Solo protege el POST
+router.post('/', AuthMiddleware.validateJwt, siteController.createSite);
 
 
+router.get('/', siteController.getSites);
 
-
-export class SitesRoutes {
-
-    static get routes(): Router {
-        
-        const router = Router();
-        const SitesController = new TodosController();
-
-        router.get('/', SitesController.getSites);
-        router.get('/:id', SitesController.getSiteById);
-
-        
-        router.post('/', SitesController.createSite);
-        router.put('/:id', SitesController.updateSite );
-        router.delete('/:id', SitesController.deleteSite );
-        
-
-        return router;
-
-    }
-
-
-}
+export default router;

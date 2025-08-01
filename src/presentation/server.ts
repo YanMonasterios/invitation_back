@@ -1,5 +1,6 @@
 import express, { Router } from 'express';
 import path from 'path';
+import cors from 'cors'; 
 
 interface Options {
   port: number;
@@ -28,8 +29,15 @@ export class Server {
     
 
     //* Middlewares
+    // va a extraer 
     this.app.use( express.json() ); // raw
     this.app.use( express.urlencoded({ extended: true }) ); // x-www-form-urlencoded
+
+    // CORS
+    this.app.use(cors({
+      origin: 'http://localhost:5173',  // URL frontend
+      credentials: true,                 
+    }));
 
     //* Public Folder
     this.app.use( express.static( this.publicPath ) );
@@ -37,10 +45,6 @@ export class Server {
 
     //* Routes
     this.app.use( this.routes );
-
-
-    
-    
 
     this.app.listen(this.port, () => {
       console.log(`Server running on port ${ this.port }`);

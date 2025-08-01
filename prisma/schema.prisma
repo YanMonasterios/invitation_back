@@ -10,6 +10,7 @@ datasource db {
 model User {
   id                   String                @id @default(uuid())
   email                String                @unique
+  emailValidated       Boolean               @default(false) 
   password             String
   name                 String
   sites                Site[]                @relation("OwnerToSites")
@@ -51,7 +52,7 @@ model Invitation {
   @@index([inviterId])
   @@index([inviteeId])
   @@index([siteId])
-  @@unique([inviteeId, siteId, startDate, endDate]) // previene solapamientos exactos
+  @@unique([inviteeId, siteId, startDate, endDate]) // previene solapamientos 
 }
 
 model InvitationHistory {
